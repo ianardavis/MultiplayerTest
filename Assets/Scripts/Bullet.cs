@@ -1,5 +1,4 @@
 using System.Collections;
-using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -11,10 +10,13 @@ public class Bullet : NetworkBehaviour
     [SerializeField]
     private float velocity;
 
+    [SerializeField]
+    private int damage = 1;
+
     private IEnumerator SelfDestruct()
     {
         yield return new WaitForSeconds(5f);
-        Destroy(gameObject);
+        GetComponent<NetworkObject>().Despawn();
     }
 
     public override void OnNetworkSpawn()
@@ -24,8 +26,8 @@ public class Bullet : NetworkBehaviour
     }
     private void OnCollisionEnter(Collision collision)
     {
-        if (!IsOwner) return;
-        collision.gameObject.SendMessage("ReceiveHit", SendMessageOptions.DontRequireReceiver);
-        //GetComponent<NetworkObject>().Despawn();
+        Debug.Log(IsServer);
+        if (!IsServer) return;
+        collision.gameObject.SendMessage("ReceiveHitClientRpc", damage, SendMessageOptions.DontRequireReceiver);
     }
 }
