@@ -1,5 +1,4 @@
-using System.Collections;
-using System.Collections.Generic;
+using TMPro;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -7,6 +6,12 @@ public class PlayerNetwork : NetworkBehaviour
 {
     [SerializeField]
     private NetworkVariable<int> moveSpeed = new NetworkVariable<int>(1);
+
+    private NetworkVariable<int> health = new NetworkVariable<int>(100);
+    public int Health
+    {
+        get { return health.Value; }
+    }
 
     [SerializeField]
     private float rotateSpeed = 1f;
@@ -20,26 +25,33 @@ public class PlayerNetwork : NetworkBehaviour
     [SerializeField]
     private GameObject gun;
 
+    [SerializeField]
+    private TMP_Text healthIndicator;
+
     private void Update()
     {
         if (!IsOwner) return;
-        Vector3 moveDir = Vector3.zero;
         float rotateDir = 0f;
+        if (Input.GetKey(KeyCode.A)) rotateDir = -1f;
+        if (Input.GetKey(KeyCode.D)) rotateDir = +1f;
+        transform.Rotate(new Vector3(0f, rotateDir * rotateSpeed * Time.deltaTime, 0f));
+
+        if (health.Value <= 0)
+        {
+            return;
+        }
+        Vector3 moveDir = Vector3.zero;
 
         if (Input.GetKey(KeyCode.W)) moveDir.z = +1f;
         if (Input.GetKey(KeyCode.S)) moveDir.z = -1f;
         if (Input.GetKey(KeyCode.Q)) moveDir.x = -1f;
         if (Input.GetKey(KeyCode.E)) moveDir.x = +1f;
 
-        if (Input.GetKey(KeyCode.A)) rotateDir = -1f;
-        if (Input.GetKey(KeyCode.D)) rotateDir = +1f;
-
         transform.Translate(moveDir * moveSpeed.Value * Time.deltaTime);
-        transform.Rotate(new Vector3(0f, rotateDir * rotateSpeed * Time.deltaTime, 0f));
 
         if (Input.GetKeyDown(KeyCode.Space))
         {
-            FireServerRpc();
+            FireServerRpc(gun.transform.position, gun.transform.rotation);
         }
     }
 
@@ -54,9 +66,15 @@ public class PlayerNetwork : NetworkBehaviour
     }
 
     [ServerRpc]
-    private void FireServerRpc()
+    private void FireServerRpc(Vector3 position, Quaternion rotation)
     {
-        GameObject _bullet = Instantiate(bullet, gun.transform.position, gun.transform.rotation);
+        GameObject _bullet = Instantiate(bullet, position, rotation);
         _bullet.GetComponent<NetworkObject>().Spawn();
+    }
+
+    [ClientRpc]
+    public void ReceiveHitClientRpc(int damage)
+    {
+        health.Value -= damage;
     }
 }
