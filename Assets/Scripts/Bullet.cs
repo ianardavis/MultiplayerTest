@@ -24,10 +24,23 @@ public class Bullet : NetworkBehaviour
         StartCoroutine(SelfDestruct());
         rb.AddRelativeForce(new Vector3(0f, velocity, 0f));
     }
-    private void OnCollisionEnter(Collision collision)
+
+    private void OnTriggerEnter(Collider collider)
     {
-        Debug.Log(IsServer);
         if (!IsServer) return;
-        collision.gameObject.SendMessage("ReceiveHitClientRpc", damage, SendMessageOptions.DontRequireReceiver);
+        Player player = collider.GetComponent<Player>();
+        if (player != null)
+        {
+            ClientRpcParams clientRpcParams = new ClientRpcParams
+            {
+                Send = new ClientRpcSendParams
+                {
+                    TargetClientIds = new ulong[] { player.ClientID }
+                }
+            };
+
+            player.Health.ReceiveHitClientRpc(damage, clientRpcParams);
+        }
+        GetComponent<NetworkObject>().Despawn();
     }
 }
