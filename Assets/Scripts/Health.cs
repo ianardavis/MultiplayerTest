@@ -1,20 +1,28 @@
+using Unity.Netcode;
 using UnityEngine;
-using TMPro;
 
-public class Health : MonoBehaviour
+public class Health : NetworkBehaviour
 {
     [SerializeField]
-    private PlayerNetwork player;
+    private Player player;
 
-    private TMP_Text text;
-
-    private void Start()
+    private NetworkVariable<int> state = new NetworkVariable<int>(
+        100,
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Owner
+    );
+    public int State
     {
-        text = GetComponent<TMP_Text>();
+        get { return state.Value; }
     }
-    private void Update()
+
+    [ClientRpc]
+    public void ReceiveHitClientRpc(int damage, ClientRpcParams clientRpcParams = default)
     {
-        text.text = player.Health.ToString();
-        if (player.Health <= 0) text.text = "You Died!!!!";
+        state.Value -= damage;
+        if (state.Value == 0)
+        {
+            player.Alive = false;
+        }
     }
 }

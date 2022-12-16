@@ -79,17 +79,16 @@ public class Menu : NetworkBehaviour
         if (host)
         {
             NetworkManager.Singleton.StartHost();
+            LoadGameScene();
         }
         else
         {
             NetworkManager.Singleton.StartClient();
         }
-        LoadGameScene();
     }
 
     private void LoadGameScene()
     {
         NetworkManager.SceneManager.LoadScene("Game", LoadSceneMode.Single);
-        //SceneManager.LoadScene(sceneName: "Game");
     }
 }
