@@ -13,6 +13,9 @@ public class Bullet : NetworkBehaviour
     [SerializeField]
     private int damage = 1;
 
+    private ulong shooter;
+    public ulong Shooter { set { shooter = value; } }
+
     private IEnumerator SelfDestruct()
     {
         yield return new WaitForSeconds(5f);
@@ -31,16 +34,21 @@ public class Bullet : NetworkBehaviour
         Player player = collider.GetComponent<Player>();
         if (player != null)
         {
-            ClientRpcParams clientRpcParams = new ClientRpcParams
+            ulong clientID = player.ClientID;
+            Debug.Log(clientID + " | " +shooter);
+            if (clientID != shooter)
             {
-                Send = new ClientRpcSendParams
+                ClientRpcParams clientRpcParams = new ClientRpcParams
                 {
-                    TargetClientIds = new ulong[] { player.ClientID }
-                }
-            };
+                    Send = new ClientRpcSendParams
+                    {
+                        TargetClientIds = new ulong[] { clientID }
+                    }
+                };
 
-            player.Health.ReceiveHitClientRpc(damage, clientRpcParams);
+                player.Health.ReceiveHitClientRpc(damage, clientRpcParams);
+                GetComponent<NetworkObject>().Despawn();
+            }
         }
-        GetComponent<NetworkObject>().Despawn();
     }
 }

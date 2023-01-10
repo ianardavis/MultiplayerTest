@@ -14,7 +14,7 @@ public class HealthLabel : MonoBehaviour
     }
     private void Update()
     {
-        text.text = health.State.ToString();
-        if (health.State <= 0) text.text = "You Died!!!!";
+        text.text = health.Current.ToString();
+        if (health.Current <= 0) text.text = "You Died!!!!";
     }
 }

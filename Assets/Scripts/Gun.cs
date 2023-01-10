@@ -24,6 +24,7 @@ public class Gun : NetworkBehaviour
     private void FireServerRpc(Vector3 position, Quaternion rotation)
     {
         GameObject _bullet = Instantiate(bullet, position, rotation);
+        _bullet.GetComponent<Bullet>().Shooter = player.ClientID;
         _bullet.GetComponent<NetworkObject>().Spawn();
     }
 }

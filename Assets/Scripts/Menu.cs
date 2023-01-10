@@ -1,8 +1,6 @@
 using System.Collections;
-using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
 using Unity.Netcode;
 using UnityEngine.SceneManagement;
 using Unity.Netcode.Transports.UTP;
@@ -20,11 +18,10 @@ public class Menu : NetworkBehaviour
 
     private void Start()
     {
-        if (!PlayerPrefs.HasKey("ServerIP"))
+        if (PlayerPrefs.HasKey("ServerIP"))
         {
-            PlayerPrefs.SetString("ServerIP", "");
+            ipAddressInput.text = PlayerPrefs.GetString("ServerIP");
         }
-        ipAddressInput.text = PlayerPrefs.GetString("ServerIP");
     }
 
     public void Close()
@@ -32,63 +29,42 @@ public class Menu : NetworkBehaviour
         Application.Quit();
     }
 
-    public void StartServer()
+    public void StartGame(bool asHost)
     {
-        StartCoroutine(CheckIP(ipAddressInput.text, true));
+        StartCoroutine(CheckIP(asHost));
     }
 
-    public void JoinServer()
+    private IEnumerator CheckIP(bool host)
     {
-        StartCoroutine(CheckIP(ipAddressInput.text, false));
-    }
+        IPAddress address = new IPAddress(ipAddressInput.text);
 
-    public IEnumerator CheckIP(string ip, bool host)
-    {
-        if (string.IsNullOrEmpty(ip))
+        if (!address.IsValid)
         {
-            ip = "127.0.0.1";
-        }
-        float currentWait = 0f;
-        Ping p = new Ping(ip);
-        while (p.isDone == false)
-        {
-            currentWait += Time.deltaTime;
-            if (currentWait > 5f)
-            {
-                break;
-            }
-            yield return null;
-        }
-        if (p.isDone)
-        {
-            if (ip != "127.0.0.1")
-            {
-                PlayerPrefs.SetString("ServerIP", ip);
-            }
-            transport.SetConnectionData(ip, 7777);
-            OnPingComplete(host);
+            messageBox.text = "Invalid IP Address";
+
         }
         else
         {
-            messageBox.text = "Invalid IP Address/Host";
-            p.DestroyPing();
-        }
-    }
-    private void OnPingComplete(bool host)
-    {
-        if (host)
-        {
-            NetworkManager.Singleton.StartHost();
-            LoadGameScene();
-        }
-        else
-        {
-            NetworkManager.Singleton.StartClient();
-        }
-    }
+            yield return StartCoroutine(address.Ping());
+            if (!address.PingSuccessful)
+            {
+                messageBox.text = "Invalid Host";
 
-    private void LoadGameScene()
-    {
-        NetworkManager.SceneManager.LoadScene("Game", LoadSceneMode.Single);
+            }
+            else
+            {
+                PlayerPrefs.SetString("ServerIP", address.IpAddress);
+                transport.SetConnectionData(address.IpAddress, 7777);
+                if (host)
+                {
+                    NetworkManager.Singleton.StartHost();
+                    NetworkManager.SceneManager.LoadScene("Game", LoadSceneMode.Single);
+                }
+                else
+                {
+                    NetworkManager.Singleton.StartClient();
+                }
+            }
+        }
     }
 }

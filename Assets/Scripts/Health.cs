@@ -6,21 +6,30 @@ public class Health : NetworkBehaviour
     [SerializeField]
     private Player player;
 
-    private NetworkVariable<int> state = new NetworkVariable<int>(
+    private NetworkVariable<int> current = new NetworkVariable<int>(
         100,
         NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Owner
     );
-    public int State
+    private NetworkVariable<int> max = new NetworkVariable<int>(
+        100,
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Owner
+    );
+    public int Current
     {
-        get { return state.Value; }
+        get { return current.Value; }
+    }
+    public int Max
+    {
+        get { return max.Value; }
     }
 
     [ClientRpc]
     public void ReceiveHitClientRpc(int damage, ClientRpcParams clientRpcParams = default)
     {
-        state.Value -= damage;
-        if (state.Value == 0)
+        current.Value -= damage;
+        if (current.Value == 0)
         {
             player.Alive = false;
         }
