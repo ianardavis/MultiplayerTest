@@ -12,7 +12,7 @@ public class Gun : NetworkBehaviour
 
     public void Fire(InputAction.CallbackContext context)
     {
-        if (!IsOwner) return;
+        if (!IsOwner || player.SettingUp) return;
 
         if (player.Alive && context.started)
         {

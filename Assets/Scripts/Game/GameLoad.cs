@@ -33,7 +33,6 @@ public class GameLoad : NetworkBehaviour
 
     public override void OnNetworkSpawn()
     {
-        Debug.Log("Spawning | " + IsServer);
         if (IsServer)
         {
             SpawnObjects(capsuleCount, capsule, 10f);

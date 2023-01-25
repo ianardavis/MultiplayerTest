@@ -11,12 +11,14 @@ public class IPAddress
     public bool IsValid { get { return isValid; } }
 
     private DateTime lastPing;
+    public DateTime LastPing { get { return lastPing; } }
+
     private bool pingSuccessful = false;
     public bool PingSuccessful { get { return pingSuccessful; } }
 
     private bool Valid()
     {
-        if (String.IsNullOrWhiteSpace(iPAddress))
+        if (string.IsNullOrWhiteSpace(iPAddress))
         {
             return false;
         }

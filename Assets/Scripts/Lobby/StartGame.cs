@@ -5,7 +5,7 @@ using Unity.Netcode;
 using UnityEngine.SceneManagement;
 using Unity.Netcode.Transports.UTP;
 
-public class Menu : NetworkBehaviour
+public class StartGame : MonoBehaviour
 {
     [SerializeField]
     private TMP_InputField ipAddressInput;
@@ -24,17 +24,12 @@ public class Menu : NetworkBehaviour
         }
     }
 
-    public void Close()
-    {
-        Application.Quit();
-    }
-
-    public void StartGame(bool asHost)
+    public void Connect(bool asHost)
     {
         StartCoroutine(CheckIP(asHost));
     }
 
-    private IEnumerator CheckIP(bool host)
+    private IEnumerator CheckIP(bool server)
     {
         IPAddress address = new IPAddress(ipAddressInput.text);
 
@@ -55,10 +50,10 @@ public class Menu : NetworkBehaviour
             {
                 PlayerPrefs.SetString("ServerIP", address.IpAddress);
                 transport.SetConnectionData(address.IpAddress, 7777);
-                if (host)
+                if (server)
                 {
-                    NetworkManager.Singleton.StartHost();
-                    NetworkManager.SceneManager.LoadScene("Game", LoadSceneMode.Single);
+                    NetworkManager.Singleton.StartServer();
+                    NetworkManager.Singleton.SceneManager.LoadScene("Setup", LoadSceneMode.Single);
                 }
                 else
                 {
